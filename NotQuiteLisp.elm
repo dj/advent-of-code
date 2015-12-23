@@ -1,16 +1,7 @@
 module NotQuiteLispWhere where
 
-import Debug
 import Html
 import String
-
--- fold :  -> Int -> Int
-fold acc l =
-  if l == "(" then
-     acc + 1
-   else
-     acc - 1
-
 
 main : Html.Html
 main = 
