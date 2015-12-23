@@ -1,4 +1,4 @@
-module NotQuiteLispWhere where
+module Day1 where
 
 import Html
 import String
