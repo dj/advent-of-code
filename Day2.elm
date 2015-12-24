@@ -42,52 +42,113 @@ How many total feet of ribbon should they order?
 
 module Day2 where
 
-import Html
+import Html exposing (div, text, h1, h2)
 import String
 import Result exposing (andThen, withDefault)
 
-toInts list =
-  List.map (\s -> withDefault 0 (String.toInt s)) list
 
-area l w h =
+type alias Package = 
+  { l : Int,
+    w : Int,
+    h : Int
+  }
+
+package : Int -> Int -> Int -> Package
+package l w h =
+  { l = l,
+    w = w,
+    h = h
+  }
+
+
+toPackage : List Int -> Maybe Package
+toPackage dimensions =
+  case dimensions of
+    l :: w :: h :: rest ->
+      Just (package l w h)
+    _ :: _ :: [] ->
+      Nothing
+    _ :: [] ->
+      Nothing
+    [] ->
+      Nothing
+
+
+toInts : String -> List Int
+toInts package = 
+  package
+    |> String.trimLeft
+    |> String.trimRight
+    |> String.split "x"
+    |> List.map (\s -> withDefault 0 (String.toInt s))
+
+
+wrappingPaperForPkg : Maybe Package -> Int
+wrappingPaperForPkg pkg =
   let
-    min = 
-      [l, w, h]
+    areaOfSmallestSide p = 
+      [ p.l, p.w, p.h ]
         |> List.sort
         |> List.take 2
         |> List.foldr (*) 1
   in
-    (2 * l * w) + (2 * w * h) + (2 * h * l) + min
+    case pkg of
+      Just p ->
+        (2 * p.l * p.w) + 
+        (2 * p.w * p.h) + 
+        (2 * p.h * p.l) + 
+        (areaOfSmallestSide p)
+      Nothing ->
+        0
 
-
-calcArea list =
-  case list of
-    l :: w :: h :: rest ->
-      area l w h
-    _ :: _ :: [] ->
-      0
-    _ :: [] ->
-      0
-    [] ->
-      0
+ribbonForPkg : Maybe Package -> Int
+ribbonForPkg pkg =
+  let
+    perimeterOfSmallestSide p =
+      [ p.l, p.w, p.h ]
+        |> List.sort
+        |> List.take 2
+        |> List.map (\n -> n * 2)
+        |> List.foldr (+) 0
+  in
+    case pkg of
+      Just p ->
+        (perimeterOfSmallestSide p) + (p.l * p.w * p.h)
+      Nothing ->
+        0
 
 main : Html.Html
 main = 
-  data
-    |> String.split "\n"
-    |> List.map String.trimLeft
-    |> List.map String.trimRight
-    |> List.map (String.split "x")
-    -- Convert strings to ints
-    |> List.map toInts
-    -- Calculate area for each package
-    |> List.map calcArea
-    -- Sum it all up
-    |> List.foldr (+) 0
-    |> toString
-    |> Html.text
+  let
+    packageList = 
+      input
+        |> String.split "\n"
+        |> List.map toInts
+        |> List.map toPackage
 
-data =
+    partA =
+      packageList
+        |> List.map wrappingPaperForPkg
+        |> List.foldr (+) 0
+        |> toString
+
+    partB =
+      packageList
+        |> List.map ribbonForPkg
+        |> List.foldr (+) 0
+        |> toString
+      
+  in
+    div []
+      [ h1 [] [ text "Day 2" ]
+      , h2 [] [ text "Amount of Wrapping Paper:" ]
+      , div [] [ text partA, text " sqft." ]
+      , h2 [] [ text "Amount of Ribbon:" ]
+      , div [] [ text partB, text " ft." ]
+      ]
+
+
+input =
   "29x13x26
     11x11x14
     27x2x5
